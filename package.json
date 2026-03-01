@@ -13,7 +13,7 @@
     "@prisma/client": "^7.4.2",
     "gsap": "^3.14.2",
     "lucide-react": "^0.575.0",
-    "next": "^15.2.0-canary.68",
+    "next": "^16.1.6",
     "pg": "^8.19.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
