@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seravicoo - Cookies & Brownies 🍪
+
+Seravicoo is a modern, blazing-fast web application and Content Management System (CMS) built for a premium homemade cookies and brownies business. It serves as both a beautiful customer-facing landing page and a robust backend for managing Pre-Order (PO) batches, catalogs, and WhatsApp orders.
+
+## Features
+
+### 🛒 Customer Facing
+
+- **Dynamic Catalog**: Browse available premium cookies and fudgy brownies.
+- **Pre-Order (PO) Status**: Real-time indication if PO is currently OPEN or CLOSED.
+- **WhatsApp Integration**: Seamlessly direct customers to WhatsApp to place their customized orders.
+- **Newsletter**: A functional subscription form to capture customer emails.
+- **Sleek Aesthetic**: A buttery, warm, chocolate-and-cream-themed modern UI.
+
+### 🔐 Admin Dashboard (CMS & OMS)
+
+- **Protected Access**: Route protection using simple PIN-based authentication.
+- **Batch Management (Laporan)**: Open and close PO periods. Automatically tally up all incoming orders into a single printable "Baking Recap" to optimize kitchen production.
+- **Product Management (Produk)**: Add, edit, delete, and instantly toggle availability (`isAvailable`) of menu items for specific PO batches.
+- **Order Tracking (Pesanan)**: Input manual orders received from WhatsApp directly into the system. It automatically calculates total pricing and allows tracking from `PENDING` -> `BAKING` -> `DELIVERED`.
+
+## Tech Stack
+
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **ORM**: [Prisma](https://www.prisma.io/)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- A Supabase account (or any PostgreSQL database)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/yourusername/seravicoo-web.git
+   cd seravicoo-web
+   ```
 
-## Learn More
+2. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Configure Environment Variables:
+   Create a `.env` file in the root directory and add your database and admin credentials:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```env
+   # Admin Dashboard PIN
+   ADMIN_PIN=123456
 
-## Deploy on Vercel
+   # Supabase Connection Strings
+   DATABASE_URL="postgresql://postgres.[YOUR_PROJECT_ID]:[YOUR_PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+   DIRECT_URL="postgresql://postgres.[YOUR_PROJECT_ID]:[YOUR_PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Push the Database Schema:
+   Sync the Prisma schema to your Supabase project:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npx prisma db push
+   ```
+
+5. Start the Development Server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Accessing the Admin Dashboard
+
+Navigate to `http://localhost:3000/admin` to access the CMS.
+Enter the `ADMIN_PIN` configured in your `.env` file.

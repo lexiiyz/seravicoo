@@ -1,0 +1,78 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  description String
+  price       Int
+  imageUrl    String
+  shopeeUrl   String
+  isAvailable Boolean     @default(true)
+  category    String      @default("cookies") // "cookies" or "brownies"
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model StoreSettings {
+  id             Int      @id @default(1)
+  isPreOrderOpen Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+}
+
+model Batch {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isOpen    Boolean  @default(true)
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  batchId      String
+  batch        Batch       @relation(fields: [batchId], references: [id])
+  customerName String
+  customerWa   String
+  totalAmount  Int
+  status       OrderStatus @default(PENDING)
+  items        OrderItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  BAKING
+  DELIVERED
+  CANCELLED
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
