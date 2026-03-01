@@ -5,6 +5,9 @@ export const revalidate = 60; // Revalidate every minute
 
 export default async function Katalog() {
   let isPreOrderOpen = true;
+  let cookies: any[] = [];
+  let brownies: any[] = [];
+
   try {
     const settings = await prisma.storeSettings.findUnique({
       where: { id: 1 },
@@ -12,21 +15,21 @@ export default async function Katalog() {
     if (settings) {
       isPreOrderOpen = settings.isPreOrderOpen;
     }
+
+    // Fetch Cookies
+    cookies = await prisma.product.findMany({
+      where: { category: 'cookies' },
+      orderBy: { name: 'asc' }
+    });
+
+    // Fetch Brownies 
+    brownies = await prisma.product.findMany({
+      where: { category: 'brownies' },
+      orderBy: { name: 'asc' }
+    });
   } catch (error) {
-    console.warn("Table StoreSettings might not exist yet. Defaulting to true.");
+    console.warn("Table StoreSettings or Product might not exist yet or database is unreachable during build. Fallback applied.", error);
   }
-
-  // Fetch Cookies
-  const cookies = await prisma.product.findMany({
-    where: { category: 'cookies' },
-    orderBy: { name: 'asc' }
-  });
-
-  // Fetch Brownies 
-  const brownies = await prisma.product.findMany({
-    where: { category: 'brownies' },
-    orderBy: { name: 'asc' }
-  });
 
   return (
     <div className="w-full bg-cream min-h-screen py-16 px-4 sm:px-6">

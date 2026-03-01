@@ -20,12 +20,17 @@ export default async function Home() {
   }
 
   // Fetch up to 4 best sellers (currently just taking newest)
-  const bestSellers = await prisma.product.findMany({
-    take: 4,
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+  let bestSellers: any[] = [];
+  try {
+    bestSellers = await prisma.product.findMany({
+      take: 4,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  } catch (error) {
+    console.warn("Failed to fetch best sellers or database unreachable during build:", error);
+  }
 
   return (
     <div className="w-full">
