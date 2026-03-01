@@ -2,6 +2,7 @@
 
 import BubbleMenu from "./BubbleMenu";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -29,12 +30,12 @@ export default function Navbar() {
   ];
 
   const logo = (
-    <a href="/" className="font-bold text-xl text-[#4A2211] tracking-tight flex items-center gap-2">
+    <Link href="/" className="font-bold text-xl text-[#4A2211] tracking-tight flex items-center gap-2">
       <div className="w-8 h-8 rounded-full bg-[#E2AD5F] flex items-center justify-center text-[#4A2211] shadow-sm">
         S
       </div>
       <span className="hidden sm:block">Seravicoo</span>
-    </a>
+    </Link>
   );
 
   return (
