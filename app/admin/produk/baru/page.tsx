@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, UploadCloud, X } from "lucide-react";
 import Link from "next/link";
 import { createProduct } from "@/app/actions/product";
 
@@ -10,11 +10,72 @@ export default function TambahProduk() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fungsi Kompresi Gambar Otomatis (Client-side)
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("File harus berupa gambar.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Logika kompresi & resize
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Export ke WebP untuk ukuran sangat kecil tapi kualitas bagus (80% quality)
+        const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
+        setPreview(compressedBase64);
+        setError(""); // Clear error if success
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (!preview) {
+      setError("Foto produk wajib diisi.");
+      setLoading(false);
+      return;
+    }
 
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -22,7 +83,7 @@ export default function TambahProduk() {
       slug: (formData.get("name") as string).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       description: formData.get("description") as string,
       price: parseInt(formData.get("price") as string),
-      imageUrl: formData.get("imageUrl") as string,
+      imageUrl: preview, // Kirim Base64 hasil kompresi ke database
       shopeeUrl: formData.get("shopeeUrl") as string,
       category: formData.get("category") as string,
       isAvailable: formData.get("isAvailable") === "on",
@@ -32,6 +93,8 @@ export default function TambahProduk() {
       await createProduct(data);
       router.push("/admin/produk");
       router.refresh();
+      // Tambahkan timeout logis untuk ngereset UI kalau transisinya butuh waktu
+      setTimeout(() => setLoading(false), 500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan produk.");
       setLoading(false);
@@ -59,6 +122,40 @@ export default function TambahProduk() {
       <div className="bg-white rounded-3xl border border-chocolate/5 shadow-sm p-8">
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           
+          {/* Upload Foto Produk */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-chocolate">Foto Produk *</label>
+            {!preview ? (
+              <div 
+                className="w-full h-48 border-2 border-dashed border-caramel/30 rounded-2xl bg-cream/20 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-cream/40 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <UploadCloud className="text-golden" size={40} />
+                <span className="text-sm text-chocolate font-bold">Klik untuk upload foto</span>
+                <span className="text-xs text-caramel">Otomatis di-compress. Max ukuran file bebas.</span>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept="image/*" 
+                  onChange={handleImageChange}
+                  className="hidden" 
+                />
+              </div>
+            ) : (
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden border border-caramel/20 shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                <button 
+                  type="button" 
+                  onClick={removeImage} 
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-md transition-transform hover:scale-105"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-chocolate">Nama Produk *</label>
@@ -86,15 +183,9 @@ export default function TambahProduk() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-chocolate">URL Gambar *</label>
-              <input name="imageUrl" required type="url" placeholder="https://..." defaultValue="https://images.unsplash.com/photo-1590080875515-8a881fb8030b?q=80&w=800&auto=format&fit=crop" className="px-4 py-3 bg-cream/30 border border-caramel/30 rounded-xl focus:outline-none focus:border-golden focus:ring-1 focus:ring-golden text-chocolate text-sm" />
-              <span className="text-xs text-caramel">Gunakan URL gambar publik (Unsplash, dll).</span>
+              <label className="text-sm font-bold text-chocolate">URL Shopee</label>
+              <input name="shopeeUrl" type="url" placeholder="https://shopee.co.id/..." className="px-4 py-3 bg-cream/30 border border-caramel/30 rounded-xl focus:outline-none focus:border-golden focus:ring-1 focus:ring-golden text-chocolate text-sm" />
             </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-chocolate">URL Shopee</label>
-            <input name="shopeeUrl" type="url" placeholder="https://shopee.co.id/..." className="px-4 py-3 bg-cream/30 border border-caramel/30 rounded-xl focus:outline-none focus:border-golden focus:ring-1 focus:ring-golden text-chocolate text-sm" />
           </div>
 
           <div className="flex items-center gap-3 p-4 bg-green-50/50 border border-green-200 rounded-xl mt-2">

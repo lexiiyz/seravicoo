@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -43,6 +44,8 @@ export async function createProduct(data: {
       isAvailable: data.isAvailable,
     }
   });
+
+  revalidatePath("/admin/produk");
 }
 
 export async function deleteProduct(id: string) {
