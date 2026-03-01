@@ -1,12 +1,13 @@
 import prisma from "@/lib/prisma";
 import ProductCard from "@/components/ProductCard";
+import type { ProductModel as Product } from "@/generated/prisma/client/models/Product";
 
 export const revalidate = 60; // Revalidate every minute
 
 export default async function Katalog() {
   let isPreOrderOpen = true;
-  let cookies: any[] = [];
-  let brownies: any[] = [];
+  let cookies: Product[] = [];
+  let brownies: Product[] = [];
 
   try {
     const settings = await prisma.storeSettings.findUnique({

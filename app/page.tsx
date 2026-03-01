@@ -3,6 +3,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import ProductCard from "@/components/ProductCard";
 import { ArrowRight, Heart } from "lucide-react";
+import type { ProductModel as Product } from "@/generated/prisma/client/models/Product";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -15,12 +16,12 @@ export default async function Home() {
     if (settings) {
       isPreOrderOpen = settings.isPreOrderOpen;
     }
-  } catch (error) {
+  } catch (_error) {
     console.warn("Table StoreSettings might not exist yet. Defaulting to true.");
   }
 
   // Fetch up to 4 best sellers (currently just taking newest)
-  let bestSellers: any[] = [];
+  let bestSellers: Product[] = [];
   try {
     bestSellers = await prisma.product.findMany({
       take: 4,
